@@ -1,0 +1,39 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Data Lake
+data-lake/raw/*
+!data-lake/raw/.gitkeep
+data-lake/clean/*
+!data-lake/clean/.gitkeep
+data-lake/curated/*
+!data-lake/curated/.gitkeep
+
+# DB data
+postgres_data/
+mongo_data/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
