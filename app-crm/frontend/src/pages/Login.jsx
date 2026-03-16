@@ -1,81 +1,95 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
+import { connexion } from '../api/user';
+import { UserInitial } from '../models/user';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: UserInitial.email,
+    mdp: UserInitial.mdp
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would call an API
-    console.log('Login attempt:', { email, password });
-    // Navigate to a dashboard or home page after login
-    // navigate('/dashboard');
+    setLoading(true);
+    setError('');
+
+    try {
+      await connexion(formData);
+      navigate('/dashboard'); 
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="auth-container">
-      <div className="auth-bg-blob blob-1"></div>
-      <div className="auth-bg-blob blob-2"></div>
-      
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">Welcome Back</h1>
-          <p className="auth-subtitle">Log in to access your CRM dashboard</p>
+          <h1 className="auth-title">Connexion</h1>
+          <p className="auth-subtitle">Accédez à votre espace CRM</p>
         </div>
 
         <form onSubmit={handleSubmit}>
+          {error && (
+            <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>
+              {error}
+            </div>
+          )}
+
           <div className="form-group">
-            <label className="form-label" htmlFor="email">Email Address</label>
+            <label className="form-label" htmlFor="email">Email</label>
             <div className="input-wrapper">
-              <div className="input-icon">
-                <Mail size={18} />
-              </div>
+              <Mail className="input-icon" size={18} />
               <input
                 id="email"
                 type="email"
-                className="form-input form-input-icon"
-                placeholder="you@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                className="form-input"
+                placeholder="votre@email.com"
+                value={formData.email}
+                onChange={handleChange}
                 required
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="password">Password</label>
+            <label className="form-label" htmlFor="mdp">Mot de passe</label>
             <div className="input-wrapper">
-              <div className="input-icon">
-                <Lock size={18} />
-              </div>
+              <Lock className="input-icon" size={18} />
               <input
-                id="password"
+                id="mdp"
                 type="password"
-                className="form-input form-input-icon"
+                className="form-input"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.mdp}
+                onChange={handleChange}
                 required
               />
             </div>
           </div>
 
-          <div className="flex-end margin-bottom-md">
-            <a href="#" className="auth-link" style={{ fontSize: '0.875rem' }}>Forgot password?</a>
-          </div>
-
-          <button type="submit" className="btn-primary btn-icon">
-            Sign In
-            <ArrowRight size={18} />
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? <Loader2 size={18} className="spin" /> : 'Se connecter'}
           </button>
         </form>
 
         <div className="auth-footer">
-          Don't have an account?{' '}
-          <Link to="/register" className="auth-link">Create an account</Link>
+          Pas encore de compte ?{' '}
+          <Link to="/register" className="auth-link">Créer un compte</Link>
         </div>
       </div>
     </div>
