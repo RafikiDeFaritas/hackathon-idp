@@ -12,8 +12,7 @@ Cette architecture est prête pour le hackathon. Elle met en place tous les serv
 │   └── /curated             # Données validées
 ├── /airflow                 # Orchestration des pipelines
 ├── /ml-ocr-engine           # Backend Python
-├── /app-crm                 # Application métier 1 (Stack MERN)
-├── /app-compliance          # Application métier 2 (Stack MERN)
+├── /app-crm                 # Application métier 1
 └── docker-compose.yml       # Fichier d'orchestration global
 ```
 

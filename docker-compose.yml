@@ -1,115 +1,70 @@
-version: '3.8'
-
 services:
-  minio:
-    image: minio/minio
-    container_name: idp_minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
-    command: server /data --console-address ":9001"
-    volumes:
-      - ./data-lake:/data
-    networks:
-      - idp_network
-
-  postgres:
-    image: postgres:14
-    container_name: idp_postgres
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow_password
-      POSTGRES_DB: airflow
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - idp_network
 
   mongodb:
-    image: mongo:6
-    container_name: idp_mongodb
-    ports:
-      - "27017:27017"
+    image: mongo:7
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: docuflow
     volumes:
       - mongo_data:/data/db
-    networks:
-      - idp_network
-
-  airflow-init:
-    build:
-      context: ./airflow
-    container_name: idp_airflow_init
-    depends_on:
-      - postgres
-    environment:
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres:5432/airflow
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-    command: version
-    networks:
-      - idp_network
-
-  airflow-webserver:
-    build:
-      context: ./airflow
-    container_name: idp_airflow_webserver
-    depends_on:
-      - postgres
     ports:
-      - "8080:8080"
-    environment:
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres:5432/airflow
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False
-    command: webserver
-    networks:
-      - idp_network
+      - "27017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1})" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
-  airflow-scheduler:
-    build:
-      context: ./airflow
-    container_name: idp_airflow_scheduler
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: mongo-express
+    restart: unless-stopped
     depends_on:
-      - postgres
+      mongodb:
+        condition: service_healthy
     environment:
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres:5432/airflow
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False
-    command: scheduler
-    networks:
-      - idp_network
-
-  ml-ocr-engine:
-    build:
-      context: ./ml-ocr-engine
-    container_name: idp_ml_ocr_engine
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
     ports:
-      - "8000:8000"
+      - "8081:8081"
+
+  backend:
+    image: node:20-alpine
+    container_name: backend
+    restart: unless-stopped
+    working_dir: /app
     volumes:
-      - ./data-lake:/app/data-lake
-      - ./ml-ocr-engine:/app
-    environment:
-      - ENVIRONMENT=development
-    networks:
-      - idp_network
-
-  app-crm-backend:
-    build:
-      context: ./app-crm
-    container_name: idp_crm_backend
+      - ./backend:/app
+      - /app/node_modules
     ports:
-      - "5000:5000"
+      - "4000:4000"
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/crm
-      - PORT=5000
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017/docuflow?authSource=admin
+      PORT: 4000
+      NODE_ENV: development
     depends_on:
-      - mongodb
-    networks:
-      - idp_network
+      mongodb:
+        condition: service_healthy
+    command: sh -c "npm install && npm run dev"
+
+  # app-crm-backend:
+  #   build:
+  #     context: ./app-crm
+  #   container_name: idp_crm_backend
+  #   ports:
+  #     - "5000:5000"
+  #   environment:
+  #     - MONGO_URI=mongodb://mongodb:27017/crm
+  #     - PORT=5000
+  #   depends_on:
+  #     - mongodb
+
 
   app-crm-frontend:
     image: node:18-alpine
@@ -119,48 +74,11 @@ services:
       - ./app-crm/frontend:/app/frontend
     command: sh -c "npm install && npm start"
     ports:
-      - "3000:3000"
+      - "3010:3000"
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - REACT_APP_API_URL=http://localhost:5000
-    networks:
-      - idp_network
-
-  app-compliance-backend:
-    build:
-      context: ./app-compliance
-    container_name: idp_compliance_backend
-    ports:
-      - "5001:5001"
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/compliance
-      - PORT=5001
-    depends_on:
-      - mongodb
-    networks:
-      - idp_network
-
-  app-compliance-frontend:
-    image: node:18-alpine
-    container_name: idp_compliance_frontend
-    working_dir: /app/frontend
-    volumes:
-      - ./app-compliance/frontend:/app/frontend
-    command: sh -c "npm install && npm start"
-    ports:
-      - "3001:3001"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-      - REACT_APP_API_URL=http://localhost:5001
-    networks:
-      - idp_network
-
-networks:
-  idp_network:
-    driver: bridge
+      - REACT_APP_API_URL=http://localhost:4000
 
 volumes:
-  postgres_data:
   mongo_data:
