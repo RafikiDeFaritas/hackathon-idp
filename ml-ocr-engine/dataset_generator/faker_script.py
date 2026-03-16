@@ -1,94 +1,136 @@
 from faker import Faker
-import random
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from datetime import timedelta
+from jinja2 import Environment, FileSystemLoader
+import pdfkit
 from pathlib import Path
+import random
+from datetime import timedelta
 
 fake = Faker("fr_FR")
 
-# Chemin absolu basé sur l'emplacement du script
+config = pdfkit.configuration(
+    wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+)
+
 BASE_DIR = Path(__file__).resolve().parent
-output_dir = (BASE_DIR / "../../data-lake/raw").resolve()
-output_dir.mkdir(parents=True, exist_ok=True)
+TEMPLATE_DIR = (BASE_DIR / "../templates").resolve()
+OUTPUT_DIR = (BASE_DIR / "../../data-lake/raw").resolve()
 
-print("Dossier de sortie :", output_dir)
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+
+company = {
+    "name": "BâtirPlus SARL",
+    "siret": "812 456 923 00018",
+    "address": "12 Rue des Artisans, 69007 Lyon",
+    "activity": "Travaux de maçonnerie générale et gros œuvre",
+    "vat": "FR12812456923"
+}
 
 
-def generate_siret():
-    return "".join(str(random.randint(0, 9)) for _ in range(14))
+def render(template_name, data, filename):
+    template = env.get_template(template_name)
+    html = template.render(data)
+
+    output_file = OUTPUT_DIR / filename
+
+    pdfkit.from_string(
+        html,
+        str(output_file),
+        configuration=config
+    )
+
+    print("PDF généré :", output_file)
 
 
-def generate_vat():
-    return "FR" + "".join(str(random.randint(0, 9)) for _ in range(11))
+def generate_quote_number(prefix):
+    return f"{prefix}-{random.randint(1000, 9999)}"
 
 
-def generate_invoice_data():
-    ht = round(random.uniform(100, 5000), 2)
-    tva = 0.20
-    ttc = round(ht * (1 + tva), 2)
+def random_amount(min_value, max_value):
+    return round(random.uniform(min_value, max_value), 2)
 
-    issue_date = fake.date_between(start_date="-2y", end_date="today")
-    expiry_date = issue_date + timedelta(days=365)
 
-    return {
-        "company": fake.company(),
-        "address": fake.address().replace("\n", ", "),
-        "siret": generate_siret(),
-        "vat": generate_vat(),
-        "amount_ht": ht,
-        "amount_ttc": ttc,
-        "issue_date": issue_date.strftime("%d/%m/%Y"),
-        "expiry_date": expiry_date.strftime("%d/%m/%Y"),
-        "invoice_number": fake.uuid4()[:8],
+def generate_devis_client(index):
+    issue = fake.date_between(start_date="-6m", end_date="today")
+    expiry = issue + timedelta(days=30)
+
+    amount_ht = random_amount(1500, 25000)
+    amount_ttc = round(amount_ht * 1.20, 2)
+
+    data = {
+        "company": company,
+        "client_name": fake.company(),
+        "client_address": fake.address().replace("\n", ", "),
+        "quote_number": generate_quote_number("DEVCL"),
+        "issue_date": issue.strftime("%d/%m/%Y"),
+        "expiry_date": expiry.strftime("%d/%m/%Y"),
+        "service": random.choice([
+            "Construction mur porteur",
+            "Travaux de maçonnerie pour extension",
+            "Rénovation façade",
+            "Dallage béton armé",
+            "Création fondations"
+        ]),
+        "amount_ht": amount_ht,
+        "amount_ttc": amount_ttc
     }
 
-
-def generate_invoice_pdf(data, file_path):
-    c = canvas.Canvas(str(file_path), pagesize=A4)
-    y = 800
-
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, y, "FACTURE")
-    y -= 40
-
-    c.setFont("Helvetica", 11)
-    c.drawString(50, y, f"Société : {data['company']}")
-    y -= 20
-
-    c.drawString(50, y, f"Adresse : {data['address']}")
-    y -= 20
-
-    c.drawString(50, y, f"SIRET : {data['siret']}")
-    y -= 20
-
-    c.drawString(50, y, f"TVA : {data['vat']}")
-    y -= 20
-
-    c.drawString(50, y, f"Numéro facture : {data['invoice_number']}")
-    y -= 20
-
-    c.drawString(50, y, f"Date d'émission : {data['issue_date']}")
-    y -= 20
-
-    c.drawString(50, y, f"Date expiration attestation : {data['expiry_date']}")
-    y -= 40
-
-    c.drawString(50, y, f"Montant HT : {data['amount_ht']} €")
-    y -= 20
-
-    c.drawString(50, y, f"Montant TTC : {data['amount_ttc']} €")
-
-    c.save()
+    render("devis_client.html", data, f"devis_client_{index}.pdf")
 
 
-def generate_dataset(n=10):
-    for i in range(n):
-        data = generate_invoice_data()
-        file_path = output_dir / f"facture_{i}.pdf"
-        generate_invoice_pdf(data, file_path)
-        print("Facture générée :", file_path)
+def generate_devis_fournisseur(index):
+    issue = fake.date_between(start_date="-6m", end_date="today")
+    expiry = issue + timedelta(days=15)
+
+    amount_ht = random_amount(300, 12000)
+    amount_ttc = round(amount_ht * 1.20, 2)
+
+    data = {
+        "company": company,
+        "supplier_name": fake.company(),
+        "supplier_address": fake.address().replace("\n", ", "),
+        "quote_number": generate_quote_number("DEVFOU"),
+        "issue_date": issue.strftime("%d/%m/%Y"),
+        "expiry_date": expiry.strftime("%d/%m/%Y"),
+        "product": random.choice([
+            "Parpaings creux",
+            "Ciment Portland",
+            "Treillis soudé",
+            "Location d'échafaudage",
+            "Béton prêt à l'emploi"
+        ]),
+        "amount_ht": amount_ht,
+        "amount_ttc": amount_ttc
+    }
+
+    render("devis_fournisseur.html", data, f"devis_fournisseur_{index}.pdf")
+
+
+def generate_attestation_siret(index):
+    issue = fake.date_between(start_date="-6m", end_date="today")
+    expiry = issue + timedelta(days=365)
+
+    data = {
+        "company": company,
+        "reference": f"ATTEST-{random.randint(10000, 99999)}",
+        "issue_date": issue.strftime("%d/%m/%Y"),
+        "expiry_date": expiry.strftime("%d/%m/%Y")
+    }
+
+    render("attestation_siret.html", data, f"attestation_siret_{index}.pdf")
+
+
+def generate_documents(n_client=5, n_supplier=5, n_attestation=3):
+    for i in range(n_client):
+        generate_devis_client(i)
+
+    for i in range(n_supplier):
+        generate_devis_fournisseur(i)
+
+    for i in range(n_attestation):
+        generate_attestation_siret(i)
 
 
 if __name__ == "__main__":
-    generate_dataset(10)
+    generate_documents()

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Arial; margin:40px;}
+.title { font-size:24px; font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<div class="title">ATTESTATION D'IDENTIFICATION ENTREPRISE</div>
+
+<p>
+Cette attestation certifie l'existence administrative de l'entreprise :
+</p>
+
+<p>
+<b>Nom :</b> {{ company.name }} <br>
+<b>SIRET :</b> {{ company.siret }} <br>
+<b>Adresse :</b> {{ company.address }} <br>
+<b>Activité :</b> {{ company.activity }}
+</p>
+
+<p>
+<b>Référence :</b> {{ reference }} <br>
+<b>Date d'émission :</b> {{ issue_date }} <br>
+<b>Date d'expiration :</b> {{ expiry_date }}
+</p>
+
+</body>
+</html>
