@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2 } from 'lucide-react';
-import { connexion } from '../api/user';
+import { useAuth } from '../context/AuthContext';
 import { UserInitial } from '../models/user';
 
 const Login = () => {
@@ -12,6 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -26,7 +27,7 @@ const Login = () => {
     setError('');
 
     try {
-      await connexion(formData);
+      await login(formData);
       navigate('/dashboard'); 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');

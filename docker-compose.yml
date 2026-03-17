@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
     working_dir: /app
     volumes:
-      - ./backend:/app
+      - ./app-crm/backend:/app
       - /app/node_modules
     ports:
       - "4000:4000"
@@ -78,7 +78,8 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - REACT_APP_API_URL=http://localhost:4000
+      - REACT_APP_API_URL=http://localhost:4000/api
+      - WDS_SOCKET_PORT=3010
 
 volumes:
   mongo_data:

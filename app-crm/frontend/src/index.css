@@ -1,48 +1,76 @@
-/* index.css - Thème clair et basique */
+/* === BASE === */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f4f7f6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f7f7f7;
+  color: #333;
+}
+
+/* === AUTH (login / register) === */
+.auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-}
-
-.auth-container {
-  width: 100%;
-  max-width: 400px;
+  min-height: 100vh;
 }
 
 .auth-card {
   background: white;
-  padding: 30px;
+  padding: 36px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+  width: 100%;
+  max-width: 400px;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
 }
 
 .auth-title {
-  margin: 0;
-  color: #333;
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .auth-subtitle {
-  color: #666;
+  margin: 0;
+  color: #888;
+  font-size: 0.9rem;
 }
 
+.auth-footer {
+  margin-top: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.auth-link {
+  color: #333;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* === FORM === */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 }
 
 .form-label {
   display: block;
   margin-bottom: 5px;
-  font-weight: bold;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: #555;
 }
 
@@ -55,57 +83,297 @@ body {
 .input-icon {
   position: absolute;
   left: 10px;
-  color: #999;
+  color: #aaa;
 }
 
 .form-input {
   width: 100%;
-  padding: 10px 10px 10px 35px;
+  padding: 9px 10px 9px 35px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: #999;
+}
+
+/* sans icône (profile, admin) */
+.form-input.no-icon {
+  padding-left: 10px;
 }
 
 .btn-primary {
   width: 100%;
-  padding: 12px;
-  background-color: #007bff;
+  padding: 10px;
+  background-color: #222;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 8px;
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: #000;
 }
 
 .btn-primary:disabled {
   background-color: #ccc;
+  cursor: default;
 }
 
-.auth-footer {
-  margin-top: 20px;
-  text-align: center;
-  color: #666;
+/* === NAVBAR === */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 52px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.auth-link {
-  color: #007bff;
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.navbar-links a:hover {
+  color: #000;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-user {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.btn-logout {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #555;
+}
+
+.btn-logout:hover {
+  border-color: #999;
+  color: #000;
+}
+
+/* === PAGES === */
+.page-container {
+  max-width: 860px;
+  margin: 36px auto;
+  padding: 0 24px;
+}
+
+.page-container h1 {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.text-muted {
+  color: #888;
+  font-size: 0.9rem;
+  margin: 0 0 24px;
+}
+
+/* === DASHBOARD CARDS === */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.card h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.card p {
+  margin: 0 0 14px;
+  color: #777;
+  font-size: 0.85rem;
+}
+
+.btn-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
   text-decoration: none;
 }
 
-.auth-link:hover {
+.btn-link:hover {
   text-decoration: underline;
 }
 
+/* === FORM CARD (profile) === */
+.form-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 460px;
+}
+
+.form-card .form-input {
+  padding-left: 10px;
+}
+
+.form-card .btn-primary {
+  width: auto;
+  padding: 9px 20px;
+}
+
+/* === TABLE === */
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.9rem;
+  margin-top: 16px;
+}
+
+.simple-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: #f7f7f7;
+  font-weight: 500;
+  color: #555;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.simple-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.simple-table tr:last-child td {
+  border-bottom: none;
+}
+
+.simple-table .form-input {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+/* === BADGES === */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-admin {
+  background: #f0e6ff;
+  color: #7c3aed;
+}
+
+.badge-user {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* === SMALL BUTTONS (table) === */
+.btn-small {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  font-size: 0.8rem;
+  background: white;
+  color: #333;
+  margin-right: 4px;
+}
+
+.btn-small:hover {
+  border-color: #999;
+}
+
+.btn-small.btn-danger {
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.btn-small.btn-danger:hover {
+  background: #fef2f2;
+}
+
+.btn-small.btn-ghost {
+  color: #888;
+}
+
+/* === MESSAGES === */
+.msg-success {
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.msg-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+/* === SPINNER === */
 .spin {
   animation: rotation 1s linear infinite;
 }
 
 @keyframes rotation {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
