@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { connexion } from '../api/user';
 import { UserInitial } from '../models/user';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
+  const [user, setUser] = useState({
     email: UserInitial.email,
     mdp: UserInitial.mdp
   });
@@ -14,8 +14,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setUser({
+      ...user,
       [e.target.id]: e.target.value
     });
   };
@@ -26,8 +26,8 @@ const Login = () => {
     setError('');
 
     try {
-      await connexion(formData);
-      navigate('/dashboard'); 
+      await connexion(user);
+      navigate('/upload'); 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');
     } finally {
@@ -36,7 +36,8 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
+      <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
           <h1 className="auth-title">Connexion</h1>
@@ -59,7 +60,7 @@ const Login = () => {
                 type="email"
                 className="form-input"
                 placeholder="votre@email.com"
-                value={formData.email}
+                value={user.email}
                 onChange={handleChange}
                 required
               />
@@ -75,7 +76,7 @@ const Login = () => {
                 type="password"
                 className="form-input"
                 placeholder="••••••••"
-                value={formData.mdp}
+                value={user.mdp}
                 onChange={handleChange}
                 required
               />
@@ -91,6 +92,7 @@ const Login = () => {
           Pas encore de compte ?{' '}
           <Link to="/register" className="auth-link">Créer un compte</Link>
         </div>
+      </div>
       </div>
     </div>
   );

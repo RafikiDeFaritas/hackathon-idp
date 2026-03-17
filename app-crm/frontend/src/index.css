@@ -1,8 +1,11 @@
-/* index.css - Thème clair et basique */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', Arial, sans-serif;
   background-color: #f4f7f6;
+  min-height: 100vh;
+}
+
+.auth-page {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -18,7 +21,7 @@ body {
   background: white;
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .auth-header {
@@ -101,11 +104,239 @@ body {
   text-decoration: underline;
 }
 
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.upload-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8fafc;
+  padding: 40px;
+}
+
+.upload-container {
+  display: flex;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 600px;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.dropzone-panel {
+  flex: 1;
+  background-color: #f1f1f1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  border: 1px dashed #cccccc;
+  margin: 15px;
+  border-radius: 8px;
+}
+
+.analysis-panel {
+  flex: 1;
+  background-color: #2c3444;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.icon-box {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.icon-box.dark {
+  background-color: #2c3444;
+  color: white;
+}
+
+.icon-box.light-dark {
+  background-color: #384252;
+  color: #94a3b8;
+}
+
+.panel-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1a202c;
+}
+
+.panel-title.white {
+  color: #ffffff;
+}
+
+.panel-description {
+  font-size: 0.95rem;
+  color: #718096;
+  max-width: 320px;
+  line-height: 1.5;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.panel-description.gray {
+  color: #a0aec0;
+}
+
+.btn-upload-primary {
+  background-color: #2c3444;
+  color: white;
+  padding: 12px 32px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: none;
+}
+
+.btn-upload-primary:hover {
+  background-color: #1e2532;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.top-bar-left .logo {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #007bff;
+  margin: 0;
+}
+
+.top-nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #1a202c;
+}
+
+.nav-link.active {
+  color: #007bff;
+}
+
+.page-container {
+  padding: 2rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 2rem;
+}
+
+.content-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #4a5568;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.user-role {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .spin {
   animation: rotation 1s linear infinite;
 }
 
 @keyframes rotation {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
