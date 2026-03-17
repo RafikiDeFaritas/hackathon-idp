@@ -1,33 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-<meta charset="utf-8">
-<style>
-body { font-family: Arial; margin:40px;}
-.title { font-size:24px; font-weight:bold;}
-</style>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 36px; font-size: 13px; color: #222; }
+    h1 { margin: 0 0 22px 0; color: {{ layout.couleur }}; font-size: {{ layout.taille_titre }}px; }
+    .bloc { margin-bottom: 18px; }
+    .label { font-weight: bold; }
+    .mise_en_avant {
+      margin-top: 18px;
+      padding: 14px;
+      border-left: 4px solid {{ layout.couleur }};
+      background: #f8fafc;
+    }
+    
+  </style>
 </head>
-
 <body>
+  <h1>{{ label|upper }}</h1>
 
-<div class="title">ATTESTATION D'IDENTIFICATION ENTREPRISE</div>
+  <div class="bloc">
+    Cette attestation certifie l'existence administrative de l'entreprise suivante :
+  </div>
 
-<p>
-Cette attestation certifie l'existence administrative de l'entreprise :
-</p>
+  <div class="bloc">
+    <span class="label">Nom :</span> {{ entreprise.nom }}<br>
+    <span class="label">SIRET :</span> {{ entreprise.siret }}<br>
+    <span class="label">TVA :</span> {{ entreprise.tva }}<br>
+    <span class="label">Adresse :</span> {{ entreprise.adresse }}<br>
+    <span class="label">Activité :</span> {{ entreprise.activite }}
+  </div>
 
-<p>
-<b>Nom :</b> {{ company.name }} <br>
-<b>SIRET :</b> {{ company.siret }} <br>
-<b>Adresse :</b> {{ company.address }} <br>
-<b>Activité :</b> {{ company.activity }}
-</p>
-
-<p>
-<b>Référence :</b> {{ reference }} <br>
-<b>Date d'émission :</b> {{ issue_date }} <br>
-<b>Date d'expiration :</b> {{ expiry_date }}
-</p>
-
+  <div class="mise_en_avant">
+    <span class="label">Type d'attestation :</span> {{ type_assurance }}<br>
+    <span class="label">Référence :</span> {{ reference }}<br>
+    <span class="label">Date d'émission :</span> {{ date_emission }}<br>
+    <span class="label">Date d'expiration :</span> {{ date_expiration }}
+  </div>
 </body>
 </html>

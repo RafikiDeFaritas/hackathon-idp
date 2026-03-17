@@ -3,134 +3,268 @@ from jinja2 import Environment, FileSystemLoader
 import pdfkit
 from pathlib import Path
 import random
-from datetime import timedelta
+from datetime import timedelta, datetime
+import copy
 
 fake = Faker("fr_FR")
+
+MODE_DEBUG = True
 
 config = pdfkit.configuration(
     wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-TEMPLATE_DIR = (BASE_DIR / "../templates").resolve()
-OUTPUT_DIR = (BASE_DIR / "../../data-lake/raw").resolve()
+DOSSIER_TEMPLATES = (BASE_DIR / "../templates").resolve()
+DOSSIER_SORTIE = (BASE_DIR / "../../data-lake/raw").resolve()
 
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+DOSSIER_SORTIE.mkdir(parents=True, exist_ok=True)
 
-env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+env = Environment(loader=FileSystemLoader(str(DOSSIER_TEMPLATES)))
 
-company = {
-    "name": "BâtirPlus SARL",
-    "siret": "812 456 923 00018",
-    "address": "12 Rue des Artisans, 69007 Lyon",
-    "activity": "Travaux de maçonnerie générale et gros œuvre",
-    "vat": "FR12812456923"
+ENTREPRISE_BASE = {
+    "nom": "BâtirPlus SARL",
+    "siret": "81245692300018",
+    "adresse": "12 Rue des Artisans, 69007 Lyon",
+    "activite": "Travaux de maçonnerie générale et gros œuvre",
 }
 
+SERVICES_BTP = [
+    "Construction mur porteur",
+    "Travaux de maçonnerie pour extension",
+    "Rénovation façade",
+    "Dallage béton armé",
+    "Création fondations",
+    "Ouverture mur porteur",
+]
 
-def render(template_name, data, filename):
-    template = env.get_template(template_name)
-    html = template.render(data)
+PRODUITS_BTP = [
+    "Parpaings creux B40",
+    "Ciment Portland 25kg",
+    "Treillis soudé ST25",
+    "Location d'échafaudage",
+    "Béton prêt à l'emploi",
+]
 
-    output_file = OUTPUT_DIR / filename
+TYPES_ASSURANCE = [
+    "Responsabilité Civile Professionnelle",
+    "Assurance Décennale",
+    "Multirisque Professionnelle",
+]
+
+
+def generer_tva_depuis_siret(siret: str) -> str:
+    siren = "".join(filter(str.isdigit, siret))[:9]
+    cle = (12 + 3 * (int(siren) % 97)) % 97
+    return f"FR{cle:02d}{siren}"
+
+
+def generer_numero_document(prefixe: str, index: int) -> str:
+    return f"{prefixe}-{datetime.now().year}-{index:04d}"
+
+
+def montant_aleatoire(min_val: float, max_val: float) -> float:
+    return round(random.uniform(min_val, max_val), 2)
+
+
+def generer_client():
+    return {
+        "nom": fake.company(),
+        "adresse": fake.street_address(),
+        "code_postal": fake.postcode(),
+        "ville": fake.city(),
+    }
+
+
+def generer_fournisseur():
+    return {
+        "nom": fake.company(),
+        "adresse": fake.street_address(),
+        "code_postal": fake.postcode(),
+        "ville": fake.city(),
+    }
+
+
+def generer_lignes(total_ht: float, catalogue):
+    nb_lignes = random.randint(2, 4)
+    lignes = []
+    reste = total_ht
+
+    for i in range(nb_lignes):
+        quantite = 1 if i == nb_lignes - 1 else random.randint(1, 5)
+        description = random.choice(catalogue)
+
+        if i == nb_lignes - 1:
+            prix_unitaire = round(reste / quantite, 2)
+        else:
+            part = random.uniform(0.2, 0.5)
+            prix_unitaire = round((total_ht * part) / quantite, 2)
+            reste -= prix_unitaire * quantite
+
+        total = round(prix_unitaire * quantite, 2)
+
+        lignes.append({
+            "description": description,
+            "quantite": quantite,
+            "prix_unitaire_ht": prix_unitaire,
+            "total_ht": total,
+        })
+
+    total_corrige = round(sum(l["total_ht"] for l in lignes), 2)
+    return lignes, total_corrige
+
+
+def layout_aleatoire():
+    return {
+        "taille_titre": random.choice([22, 24, 26]),
+        "couleur": random.choice(["#1f2937", "#1d4ed8", "#0f766e"]),
+        "afficher_note": random.choice([True, False]),
+    }
+
+
+def injecter_anomalie(donnees, type_doc):
+
+    if type_doc == "attestation":
+        anomalies = ["siret_invalide", "tva_invalide", "date_incoherente"]
+    else:
+        anomalies = [
+            "siret_invalide",
+            "tva_invalide",
+            "ttc_inferieur_ht",
+            "date_incoherente",
+            "quantite_zero"
+        ]
+
+    anomalie = random.choice(anomalies)
+
+    if anomalie == "siret_invalide":
+        donnees["entreprise"]["siret"] = "1234567890123"
+
+    elif anomalie == "tva_invalide":
+        donnees["entreprise"]["tva"] = "FR00000000000"
+
+    elif anomalie == "ttc_inferieur_ht":
+        if "montant_ht" in donnees:
+            donnees["montant_ttc"] = round(donnees["montant_ht"] * 0.6, 2)
+
+    elif anomalie == "date_incoherente":
+        donnees["date_expiration"] = "01/01/2020"
+
+    elif anomalie == "quantite_zero":
+        if "lignes" in donnees and len(donnees["lignes"]) > 0:
+            donnees["lignes"][0]["quantite"] = 0
+
+    if MODE_DEBUG:
+        print(f"[DEBUG] anomalie injectée ({type_doc})")
+
+    return donnees
+
+
+def generer_pdf(nom_template: str, donnees: dict, nom_fichier: str):
+    template = env.get_template(nom_template)
+    html = template.render(donnees)
+
+    chemin_fichier = DOSSIER_SORTIE / nom_fichier
 
     pdfkit.from_string(
         html,
-        str(output_file),
+        str(chemin_fichier),
         configuration=config
     )
 
-    print("PDF généré :", output_file)
+    print("PDF généré :", chemin_fichier)
 
 
-def generate_quote_number(prefix):
-    return f"{prefix}-{random.randint(1000, 9999)}"
+def generer_devis_client(index: int):
+    entreprise = copy.deepcopy(ENTREPRISE_BASE)
+    entreprise["tva"] = generer_tva_depuis_siret(entreprise["siret"])
 
+    date_emission = fake.date_between(start_date="-6m", end_date="today")
+    date_expiration = date_emission + timedelta(days=30)
 
-def random_amount(min_value, max_value):
-    return round(random.uniform(min_value, max_value), 2)
-
-
-def generate_devis_client(index):
-    issue = fake.date_between(start_date="-6m", end_date="today")
-    expiry = issue + timedelta(days=30)
-
-    amount_ht = random_amount(1500, 25000)
-    amount_ttc = round(amount_ht * 1.20, 2)
+    montant_initial = montant_aleatoire(3000, 20000)
+    lignes, montant_ht = generer_lignes(montant_initial, SERVICES_BTP)
+    montant_ttc = round(montant_ht * 1.20, 2)
 
     data = {
-        "company": company,
-        "client_name": fake.company(),
-        "client_address": fake.address().replace("\n", ", "),
-        "quote_number": generate_quote_number("DEVCL"),
-        "issue_date": issue.strftime("%d/%m/%Y"),
-        "expiry_date": expiry.strftime("%d/%m/%Y"),
-        "service": random.choice([
-            "Construction mur porteur",
-            "Travaux de maçonnerie pour extension",
-            "Rénovation façade",
-            "Dallage béton armé",
-            "Création fondations"
-        ]),
-        "amount_ht": amount_ht,
-        "amount_ttc": amount_ttc
+        "layout": layout_aleatoire(),
+        "entreprise": entreprise,
+        "client": generer_client(),
+        "numero": generer_numero_document("DEVCL", index + 1),
+        "date_emission": date_emission.strftime("%d/%m/%Y"),
+        "date_expiration": date_expiration.strftime("%d/%m/%Y"),
+        "lignes": lignes,
+        "montant_ht": montant_ht,
+        "montant_ttc": montant_ttc,
+        "label": "Devis client"
     }
 
-    render("devis_client.html", data, f"devis_client_{index}.pdf")
+    if random.random() < 0.2:
+        data = injecter_anomalie(data, "devis_client")
+
+    generer_pdf("devis_client.html", data, f"{data['numero']}.pdf")
 
 
-def generate_devis_fournisseur(index):
-    issue = fake.date_between(start_date="-6m", end_date="today")
-    expiry = issue + timedelta(days=15)
+def generer_devis_fournisseur(index: int):
+    entreprise = copy.deepcopy(ENTREPRISE_BASE)
+    entreprise["tva"] = generer_tva_depuis_siret(entreprise["siret"])
 
-    amount_ht = random_amount(300, 12000)
-    amount_ttc = round(amount_ht * 1.20, 2)
+    date_emission = fake.date_between(start_date="-6m", end_date="today")
+    date_expiration = date_emission + timedelta(days=15)
+
+    montant_initial = montant_aleatoire(500, 10000)
+    lignes, montant_ht = generer_lignes(montant_initial, PRODUITS_BTP)
+    montant_ttc = round(montant_ht * 1.20, 2)
 
     data = {
-        "company": company,
-        "supplier_name": fake.company(),
-        "supplier_address": fake.address().replace("\n", ", "),
-        "quote_number": generate_quote_number("DEVFOU"),
-        "issue_date": issue.strftime("%d/%m/%Y"),
-        "expiry_date": expiry.strftime("%d/%m/%Y"),
-        "product": random.choice([
-            "Parpaings creux",
-            "Ciment Portland",
-            "Treillis soudé",
-            "Location d'échafaudage",
-            "Béton prêt à l'emploi"
-        ]),
-        "amount_ht": amount_ht,
-        "amount_ttc": amount_ttc
+        "layout": layout_aleatoire(),
+        "entreprise": entreprise,
+        "fournisseur": generer_fournisseur(),
+        "numero": generer_numero_document("DEVFOU", index + 1),
+        "date_emission": date_emission.strftime("%d/%m/%Y"),
+        "date_expiration": date_expiration.strftime("%d/%m/%Y"),
+        "lignes": lignes,
+        "montant_ht": montant_ht,
+        "montant_ttc": montant_ttc,
+        "label": "Devis fournisseur"
     }
 
-    render("devis_fournisseur.html", data, f"devis_fournisseur_{index}.pdf")
+    if random.random() < 0.2:
+        data = injecter_anomalie(data, "devis_fournisseur")
+
+    generer_pdf("devis_fournisseur.html", data, f"{data['numero']}.pdf")
 
 
-def generate_attestation_siret(index):
-    issue = fake.date_between(start_date="-6m", end_date="today")
-    expiry = issue + timedelta(days=365)
+def generer_attestation(index: int):
+    entreprise = copy.deepcopy(ENTREPRISE_BASE)
+    entreprise["tva"] = generer_tva_depuis_siret(entreprise["siret"])
 
     data = {
-        "company": company,
-        "reference": f"ATTEST-{random.randint(10000, 99999)}",
-        "issue_date": issue.strftime("%d/%m/%Y"),
-        "expiry_date": expiry.strftime("%d/%m/%Y")
+        "layout": layout_aleatoire(),
+        "entreprise": entreprise,
+        "reference": generer_numero_document("ATTEST", index + 1),
+        "type_assurance": random.choice(TYPES_ASSURANCE),
+        "date_emission": fake.date_between("-6m", "today").strftime("%d/%m/%Y"),
+        "date_expiration": fake.date_between("today", "+1y").strftime("%d/%m/%Y"),
+        "label": "Attestation"
     }
 
-    render("attestation_siret.html", data, f"attestation_siret_{index}.pdf")
+    if random.random() < 0.2:
+        data = injecter_anomalie(data, "attestation")
+
+    generer_pdf("attestation_siret.html", data, f"{data['reference']}.pdf")
 
 
-def generate_documents(n_client=5, n_supplier=5, n_attestation=3):
-    for i in range(n_client):
-        generate_devis_client(i)
+def generer_documents(nb_clients=50, nb_fournisseurs=50, nb_attestations=50):
+    for i in range(nb_clients):
+        generer_devis_client(i)
 
-    for i in range(n_supplier):
-        generate_devis_fournisseur(i)
+    for i in range(nb_fournisseurs):
+        generer_devis_fournisseur(i)
 
-    for i in range(n_attestation):
-        generate_attestation_siret(i)
+    for i in range(nb_attestations):
+        generer_attestation(i)
 
 
 if __name__ == "__main__":
-    generate_documents()
+    generer_documents(50, 50, 25)
