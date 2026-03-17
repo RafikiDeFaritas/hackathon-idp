@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User as UserIcon, Mail, Lock, Loader2 } from 'lucide-react';
 import { createUser } from '../api/user';
 import { UserInitial } from '../models/user';
 
 const Register = () => {
-  const [formData, setFormData] = useState({
+  const [user, setUser] = useState({
     ...UserInitial,
     confirmPassword: ''
   });
@@ -14,8 +14,8 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setUser({
+      ...user,
       [e.target.id]: e.target.value
     });
   };
@@ -24,14 +24,14 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    if (formData.mdp !== formData.confirmPassword) {
+    if (user.mdp !== user.confirmPassword) {
       setError("Les mots de passe ne correspondent pas");
       return;
     }
 
     setLoading(true);
     try {
-      const { confirmPassword, ...userData } = formData;
+      const { confirmPassword, ...userData } = user;
       await createUser(userData);
       navigate('/login');
     } catch (err) {
@@ -42,7 +42,8 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
+      <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
           <h1 className="auth-title">Inscription</h1>
@@ -65,7 +66,7 @@ const Register = () => {
                 type="text"
                 className="form-input"
                 placeholder="Nom Prenom"
-                value={formData.name}
+                value={user.name}
                 onChange={handleChange}
                 required
               />
@@ -81,7 +82,7 @@ const Register = () => {
                 type="email"
                 className="form-input"
                 placeholder="votre@email.com"
-                value={formData.email}
+                value={user.email}
                 onChange={handleChange}
                 required
               />
@@ -97,7 +98,7 @@ const Register = () => {
                 type="password"
                 className="form-input"
                 placeholder="••••••••"
-                value={formData.mdp}
+                value={user.mdp}
                 onChange={handleChange}
                 required
               />
@@ -113,7 +114,7 @@ const Register = () => {
                 type="password"
                 className="form-input"
                 placeholder="••••••••"
-                value={formData.confirmPassword}
+                value={user.confirmPassword}
                 onChange={handleChange}
                 required
               />
@@ -129,6 +130,7 @@ const Register = () => {
           Déjà un compte ?{' '}
           <Link to="/login" className="auth-link">Se connecter</Link>
         </div>
+      </div>
       </div>
     </div>
   );
