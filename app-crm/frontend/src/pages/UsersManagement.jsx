@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUsers, deleteUser, updateUser, createUser } from '../api/user';
+import { getDocumentsByUserId } from '../api/document';
 import { X, Plus } from 'lucide-react';
 import UserTableRow from '../components/UserTableRow';
 import UserForm from '../components/UserForm';
@@ -8,6 +9,8 @@ const UsersManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAddingUser, setIsAddingUser] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userDocuments, setUserDocuments] = useState([]);
 
     const fetchUsers = async () => {
         try {
@@ -42,6 +45,17 @@ const UsersManagement = () => {
         setUsers(users.map(u => (u._id === id) ? { ...u, ...updatedData } : u));
     };
 
+    const handleViewDocuments = async (user) => {
+        setSelectedUser(user);
+        const docs = await getDocumentsByUserId(user._id);
+        setUserDocuments(docs);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedUser(null);
+        setUserDocuments([]);
+    };
+
     return (
         <div className="page-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -59,10 +73,10 @@ const UsersManagement = () => {
             {isAddingUser && (
                 <div className="content-card" style={{ marginBottom: '2rem' }}>
                     <h2 style={{ fontSize: '1.25rem', marginTop: 0, marginBottom: '1.5rem' }}>Nouvel Utilisateur</h2>
-                    <UserForm 
-                        onSubmit={handleAddUser} 
-                        buttonText="Créer" 
-                        showRole={true} 
+                    <UserForm
+                        onSubmit={handleAddUser}
+                        buttonText="Créer"
+                        showRole={true}
                     />
                 </div>
             )}
@@ -89,6 +103,7 @@ const UsersManagement = () => {
                                         user={user}
                                         onDelete={handleDeleteUser}
                                         onUpdate={handleUpdateUser}
+                                        onViewDocuments={handleViewDocuments}
                                     />
                                 ))}
                             </tbody>
@@ -96,6 +111,45 @@ const UsersManagement = () => {
                     </div>
                 )}
             </div>
+
+            {selectedUser && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="content-card" style={{ width: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h2 style={{ margin: 0 }}>Documents de {selectedUser.name}</h2>
+                            <button className="action-btn cancel" onClick={handleCloseModal}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {userDocuments.length === 0 ? (
+                            <p>Aucun document</p>
+                        ) : (
+                            <table className="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nom du fichier</th>
+                                        <th>Statut</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {userDocuments.map((doc) => (
+                                        <tr key={doc._id}>
+                                            <td>{doc.originalName}</td>
+                                            <td>{doc.status}</td>
+                                            <td>{new Date(doc.createdAt).toLocaleDateString('fr-FR')}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

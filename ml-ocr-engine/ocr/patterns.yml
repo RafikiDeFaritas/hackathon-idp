@@ -1,33 +1,33 @@
 # Configuration des expressions régulières
 extractions:
   document_id:
-    pattern: "(?:R.f.rence|N° devis) : ([0-z-]+)\n"
+    pattern: "(?:R.f.rence|N° devis) : ([A-Za-z0-9-]+)"
     description: "Capture l'id du document"
 
   document_type:
     pattern: "(?i)(ATTESTATION|DEVIS CLIENT|DEVIS FOURNISSEUR)"
     description: "Capture le type de document"
-  
+
   siret:
-    pattern: "SIRET : ([0-9]+)\n"
-    description: "Capture les 14 chiffres du SIRET avec ou sans espaces"
-  
+    pattern: "SIRET : ([0-9]{14})"
+    description: "Capture les 14 chiffres du SIRET"
+
   date_emission:
-    pattern: "Date d'.mission : (.?./.?./.?.?..)"
+    pattern: "Date d'.mission : (\\d{1,2}/\\d{2}/\\d{4})"
     description: "Capture la date d'emission"
-  
+
   date_expiration:
-    pattern: "Date (?:d'expiration|de validité) : (.?./.?./.?.?..)"
-    description: "Capture la date d'emission"
-  
-  montant_tva:
-    pattern: "TVA : ([0-z]+)\n"
-    description: "Capture le montant après la mention TVA"
+    pattern: "Date (?:d'expiration|de validit.) : (\\d{1,2}/\\d{2}/\\d{4})"
+    description: "Capture la date d'expiration"
+
+  numero_tva:
+    pattern: "TVA : (FR[0-9A-Z]{11})"
+    description: "Capture le numéro de TVA intracommunautaire"
 
   nom:
-    pattern: "(?:Nom : |Entreprise\n\n)(.*)\n"
-    description: "Capture le nom"
-  
+    pattern: "(?:Nom : |Entreprise\\s+)([^\\n]+)"
+    description: "Capture le nom de l'entreprise"
+
   adresse:
-    pattern: "Adresse : (.*)\n"
+    pattern: "Adresse : ([^\\n]+)"
     description: "Capture l'adresse"

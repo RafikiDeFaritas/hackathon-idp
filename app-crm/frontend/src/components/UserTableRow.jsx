@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pencil, Trash2, X, Check, Eye } from 'lucide-react';
 
-const UserTableRow = ({ user, onDelete, onUpdate }) => {
+const UserTableRow = ({ user, onDelete, onUpdate, onViewDocuments }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: user.name, email: user.email, role: user.role });
 
@@ -59,7 +59,7 @@ const UserTableRow = ({ user, onDelete, onUpdate }) => {
                 )}
             </td>
             <td>
-                0 {/* A FAIRE : Récupérer le nombre de documents via l'API pour cet utilisateur */}
+                {user.documentCount ?? 0}
             </td>
             <td className="actions-cell">
                 {isEditing ? (
@@ -76,7 +76,7 @@ const UserTableRow = ({ user, onDelete, onUpdate }) => {
                         <button
                             className="action-btn"
                             style={{ color: '#0ea5e9' }}
-                            onClick={() => alert("A FAIRE : Afficher les documents de cet utilisateur")}
+                            onClick={() => onViewDocuments(user)}
                             title="Voir les documents"
                         >
                             <Eye size={18} />

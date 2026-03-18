@@ -2,7 +2,7 @@ import express from "express";
 import fs from "fs";
 import multer from "multer";
 import path from "path";
-import { uploadDocument, getDocuments } from "../controllers/document.controller";
+import { uploadDocument, getDocuments, getDocumentsByUserId } from "../controllers/document.controller";
 import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
@@ -29,5 +29,6 @@ const upload = multer({ storage: storage });
 // On peut ajouter authenticate ici si on veut restreindre l'accès
 router.post("/upload", authenticate, upload.single("file"), uploadDocument);
 router.get("/", authenticate, getDocuments);
+router.get("/user/:userId", authenticate, getDocumentsByUserId);
 
 export default router;

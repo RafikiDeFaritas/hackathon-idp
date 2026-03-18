@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../model/user.model';
+import DocumentModel from '../model/document.model';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -8,7 +9,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const users = await User.find().select('-mdpHash');
-        res.status(200).json(users);
+        const usersWithCount = await Promise.all(
+            users.map(async (user) => {
+                const documentCount = await DocumentModel.countDocuments({ ownerId: user._id });
+                return { ...user.toObject(), documentCount };
+            })
+        );
+        res.status(200).json(usersWithCount);
     } catch (error) {
         res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs', error });
     }
