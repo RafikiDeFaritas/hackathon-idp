@@ -1,6 +1,6 @@
 import { Upload as UploadIcon } from 'lucide-react';
 
-const UploadPanel = ({ file, onFileChange }) => {
+const UploadPanel = ({ file, onFileChange, onUpload, isUploading }) => {
     return (
         <div className="dropzone-panel">
             <div className="icon-box dark">
@@ -19,6 +19,15 @@ const UploadPanel = ({ file, onFileChange }) => {
                     onChange={onFileChange}
                 />
             </label>
+            <button
+                type="button"
+                className="btn-upload-primary"
+                onClick={onUpload}
+                disabled={!file || isUploading}
+                style={{ marginTop: '10px', opacity: !file || isUploading ? 0.6 : 1 }}
+            >
+                {isUploading ? 'Upload en cours...' : 'Lancer upload'}
+            </button>
             {file && (
                 <p className="selected-file" style={{ marginTop: '15px', color: '#2c3444', fontSize: '0.8rem' }}>
                     Fichier : {file.name}

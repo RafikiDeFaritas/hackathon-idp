@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 36px; font-size: 13px; color: #222; }
+    h1 { margin: 0 0 20px 0; color: {{ layout.couleur }}; font-size: {{ layout.taille_titre }}px; }
+    .bloc { margin-bottom: 18px; }
+    .label { font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #bbb; padding: 8px; text-align: left; }
+    th { background: #f3f4f6; }
+    .totaux { margin-top: 18px; width: 280px; margin-left: auto; }
+    .totaux td { border: 1px solid #bbb; }
+    .note-bas-page { margin-top: 28px; font-size: 11px; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>{{ label|upper }}</h1>
+
+  <div class="bloc">
+    <div class="label">Entreprise</div>
+    {{ entreprise.nom }}<br>
+    SIRET : {{ entreprise.siret }}<br>
+    TVA : {{ entreprise.tva }}<br>
+    Adresse : {{ entreprise.adresse }}<br>
+    Activité : {{ entreprise.activite }}
+  </div>
+
+  <div class="bloc">
+    <div class="label">Client</div>
+    {{ client.nom }}<br>
+    {{ client.adresse }}<br>
+    {{ client.code_postal }} {{ client.ville }}
+  </div>
+
+  <div class="bloc">
+    <span class="label">N° devis :</span> {{ numero }}<br>
+    <span class="label">Date d'émission :</span> {{ date_emission }}<br>
+    <span class="label">Date d'expiration :</span> {{ date_expiration }}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Prestation</th>
+        <th>Quantité</th>
+        <th>PU HT</th>
+        <th>Total HT</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ligne in lignes %}
+      <tr>
+        <td>{{ ligne.description }}</td>
+        <td>{{ ligne.quantite }}</td>
+        <td>{{ "%.2f"|format(ligne.prix_unitaire_ht) }} €</td>
+        <td>{{ "%.2f"|format(ligne.total_ht) }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totaux">
+    <tr>
+      <td><strong>Montant HT</strong></td>
+      <td>{{ "%.2f"|format(montant_ht) }} €</td>
+    </tr>
+    <tr>
+      <td><strong>Montant TTC</strong></td>
+      <td>{{ "%.2f"|format(montant_ttc) }} €</td>
+    </tr>
+  </table>
+
+  {% if layout.afficher_note %}
+  <div class="note-bas-page">
+    Devis valable 30 jours à compter de sa date d'émission.
+  </div>
+  {% endif %}
+</body>
+</html>
