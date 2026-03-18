@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import tempfile
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
@@ -24,6 +25,11 @@ app.add_middleware(
 )
 
 PATTERNS_PATH = os.path.join(os.path.dirname(__file__), "..", "ocr", "patterns.yml")
+DATA_LAKE_CLEAN   = os.environ.get("DATA_LAKE_CLEAN",   "/data-lake/clean")
+DATA_LAKE_CURATED = os.environ.get("DATA_LAKE_CURATED", "/data-lake/curated")
+
+os.makedirs(DATA_LAKE_CLEAN,   exist_ok=True)
+os.makedirs(DATA_LAKE_CURATED, exist_ok=True)
 
 
 @app.get("/")
@@ -35,6 +41,8 @@ def health_check():
 async def extract_from_pdf(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Seuls les fichiers PDF sont acceptés.")
+
+    base_name = os.path.splitext(file.filename)[0]
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         pdf_path = os.path.join(tmp_dir, file.filename)
@@ -51,8 +59,16 @@ async def extract_from_pdf(file: UploadFile = File(...)):
         with open(txt_path, "r", encoding="utf-8") as f:
             texte = f.read()
 
+
+        with open(os.path.join(DATA_LAKE_CLEAN, f"{base_name}.txt"), "w", encoding="utf-8") as f:
+            f.write(texte)
+
         patterns = load_patterns(PATTERNS_PATH)
         donnees = extract_data(texte, patterns)
+
+
+        with open(os.path.join(DATA_LAKE_CURATED, f"{base_name}.json"), "w", encoding="utf-8") as f:
+            json.dump(donnees, f, ensure_ascii=False, indent=2)
 
     return {
         "filename": file.filename,

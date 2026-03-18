@@ -11,7 +11,7 @@ services:
     ports:
       - "4000:4000"
     environment:
-      MONGO_URI: 
+      MONGO_URI: mongodb+srv://hackathon_db_user:5WIN4zcudKJAunn0@cluster0.ptkiqp9.mongodb.net/
       JWT_SECRET: change_me_with_a_long_random_secret
       PORT: 4000
       NODE_ENV: development
@@ -25,6 +25,11 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    volumes:
+      - ./data-lake:/data-lake
+    environment:
+      DATA_LAKE_CLEAN: /data-lake/clean
+      DATA_LAKE_CURATED: /data-lake/curated
 
   app-crm-frontend:
     image: node:18-alpine

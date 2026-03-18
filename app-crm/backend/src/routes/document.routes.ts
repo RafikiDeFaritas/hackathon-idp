@@ -6,7 +6,7 @@ import { uploadDocument, getDocuments } from "../controllers/document.controller
 import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
-const uploadDir = path.join(process.cwd(), "uploads");
+const uploadDir = process.env.DATA_LAKE_RAW || path.join(process.cwd(), "uploads");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
