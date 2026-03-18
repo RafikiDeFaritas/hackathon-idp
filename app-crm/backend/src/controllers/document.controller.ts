@@ -69,7 +69,7 @@ export const getDocuments = async (req: AuthRequest, res: Response): Promise<voi
             return;
         }
 
-        const query = req.user.role === "ADMIN" ? {} : { ownerId: req.user.userId };
+        const query = { ownerId: req.user.userId };
         const documents = await DocumentModel.find(query).sort({ createdAt: -1 });
         res.json(documents);
     } catch (err: any) {
