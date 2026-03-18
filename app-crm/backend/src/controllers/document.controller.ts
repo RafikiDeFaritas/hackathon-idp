@@ -1,8 +1,14 @@
 import { Request, Response } from "express";
 import DocumentModel from "../model/document.model";
+import { AuthRequest } from "../middleware/auth";
 
-export const uploadDocument = async (req: Request, res: Response): Promise<void> => {
+export const uploadDocument = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+        if (!req.user) {
+            res.status(401).json({ message: "Utilisateur non authentifie" });
+            return;
+        }
+
         const file = req.file;
 
         if (!file) {
@@ -11,6 +17,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
         }
 
         const document = await DocumentModel.create({
+            ownerId: req.user.userId,
             filename: file.filename,
             originalName: file.originalname,
             path: file.path
@@ -26,9 +33,15 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const getDocuments = async (_req: Request, res: Response): Promise<void> => {
+export const getDocuments = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const documents = await DocumentModel.find().sort({ createdAt: -1 });
+        if (!req.user) {
+            res.status(401).json({ message: "Utilisateur non authentifie" });
+            return;
+        }
+
+        const query = req.user.role === "ADMIN" ? {} : { ownerId: req.user.userId };
+        const documents = await DocumentModel.find(query).sort({ createdAt: -1 });
         res.json(documents);
     } catch (err: any) {
         res.status(500).json({ error: err.message });
