@@ -4,11 +4,13 @@ import { getDocumentsByUserId } from '../api/document';
 import { X, Plus } from 'lucide-react';
 import UserTableRow from '../components/UserTableRow';
 import UserForm from '../components/UserForm';
+import DocumentCard from '../components/DocumentCard';
 
 const UsersManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAddingUser, setIsAddingUser] = useState(false);
+    const [selectedUserForDocs, setSelectedUserForDocs] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
     const [userDocuments, setUserDocuments] = useState([]);
 
@@ -128,24 +130,11 @@ const UsersManagement = () => {
                         {userDocuments.length === 0 ? (
                             <p>Aucun document</p>
                         ) : (
-                            <table className="users-table">
-                                <thead>
-                                    <tr>
-                                        <th>Nom du fichier</th>
-                                        <th>Statut</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {userDocuments.map((doc) => (
-                                        <tr key={doc._id}>
-                                            <td>{doc.originalName}</td>
-                                            <td>{doc.status}</td>
-                                            <td>{new Date(doc.createdAt).toLocaleDateString('fr-FR')}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+                                {userDocuments.map((doc) => (
+                                    <DocumentCard key={doc._id || doc.filename} doc={doc} />
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>
