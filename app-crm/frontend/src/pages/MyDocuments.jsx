@@ -1,11 +1,29 @@
-
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, Filter } from 'lucide-react';
 import { getDocuments } from '../api/document';
 
 const MyDocuments = () => {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [filterType, setFilterType] = useState('ALL');
+    const navigate = useNavigate();
+
+    let uniqueTypes = [];
+    documents.forEach(doc => {
+        const type = doc.extractedData?.document_type;
+        if (type && !uniqueTypes.includes(type)) {
+            uniqueTypes.push(type);
+        }
+    });
+
+    let filteredDocuments = documents;
+    if (filterType !== 'ALL') {
+        filteredDocuments = documents.filter(doc =>
+            doc.extractedData?.document_type === filterType
+        );
+    }
 
     useEffect(() => {
         const loadDocuments = async () => {
@@ -39,18 +57,24 @@ const MyDocuments = () => {
         }
 
         return (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '10px' }}>
-                {documents.map((doc) => (
-                    <li key={doc._id || doc.filename} style={{ padding: '12px', borderRadius: '10px', background: '#f7f8fa', border: '1px solid #e5e7eb' }}>
-                        <strong>{doc.originalName}</strong>
-                        <div style={{ fontSize: '0.85rem', color: '#4b5563', marginTop: '6px' }}>
-                            Statut: {doc.status || 'uploaded'}
-                        </div>
-                        {doc.createdAt && (
-                            <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '4px' }}>
-                                Ajoute le {new Date(doc.createdAt).toLocaleString('fr-FR')}
+            <ul className="doc-list">
+                {filteredDocuments.map((doc) => (
+                    <li key={doc._id || doc.filename} className="doc-list-item">
+                        <div className="doc-list-info">
+                            <strong className="doc-list-title">{doc.originalName}</strong>
+                            <div className="doc-list-meta">
+                                <span className={`role-badge ${doc.status === 'done' ? 'badge-success' : 'user'}`}>
+                                    {doc.status || 'uploaded'}
+                                </span>
+                                {doc.createdAt && `Ajouté le ${new Date(doc.createdAt).toLocaleDateString('fr-FR')}`}
                             </div>
-                        )}
+                        </div>
+                        <button
+                            className="btn-upload-primary btn-icon"
+                            onClick={() => navigate('/documents/details', { state: { doc } })}
+                        >
+                            <Eye size={18} /> Voir les détails
+                        </button>
                     </li>
                 ))}
             </ul>
@@ -59,7 +83,25 @@ const MyDocuments = () => {
 
     return (
         <div className="page-container">
-            <h1 className="page-title">Mes documents</h1>
+            <div className="page-header">
+                <h1 className="page-title no-margin">Mes documents</h1>
+
+                {documents.length > 0 && uniqueTypes.length > 0 && (
+                    <div className="input-wrapper">
+                        <Filter className="input-icon" size={18} />
+                        <select
+                            className="form-input filter-select"
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                        >
+                            <option value="ALL">Tous les types</option>
+                            {uniqueTypes.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+            </div>
             <div className="content-card">
                 {renderContent()}
             </div>
