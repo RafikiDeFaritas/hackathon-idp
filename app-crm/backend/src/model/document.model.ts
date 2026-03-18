@@ -6,6 +6,7 @@ export interface IDocument extends MongooseDocument {
   originalName: string;
   path: string;
   status: string;
+  extractedData: Record<string, any> | null;
   createdAt: Date;
 }
 
@@ -14,14 +15,9 @@ const documentSchema: Schema = new Schema({
   filename: { type: String, required: true },
   originalName: { type: String, required: true },
   path: { type: String, required: true },
-  status: {
-    type: String,
-    default: "uploaded"
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  status: {type: String,default: "uploaded"},
+  extractedData: {type: Schema.Types.Mixed,default: null},
+  createdAt: {type: Date,default: Date.now}
 });
 
 const DocumentModel = mongoose.model<IDocument>("Document", documentSchema);
