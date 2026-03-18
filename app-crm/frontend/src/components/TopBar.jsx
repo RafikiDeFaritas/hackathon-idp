@@ -22,6 +22,16 @@ const TopBar = () => {
           <Link to="/documents" className="nav-link">
             <span>Mes documents</span>
           </Link>
+          {user.role === 'ADMIN' && (
+            <>
+              <Link to="/dashboard-admin" className="nav-link">
+                <span>Dashboard</span>
+              </Link>
+              <Link to="/users-management" className="nav-link">
+                <span>Utilisateurs</span>
+              </Link>
+            </>
+          )}
         </nav>
       </div>
       <div className="top-bar-right">
