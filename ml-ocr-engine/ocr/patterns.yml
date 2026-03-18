@@ -1,0 +1,17 @@
+# Configuration des expressions régulières
+extractions:
+  siret:
+    pattern: '\b(\d{3}\s?\d{3}\s?\d{3}\s?\d{5})\b'
+    description: "Capture les 14 chiffres du SIRET avec ou sans espaces"
+  
+  date:
+    pattern: '(\d{4}[/\.-]\d{2}[/\.-]\d{2})'
+    description: "Capture les dates au format JJ/MM/AAAA ou JJ-MM-AAAA"
+  
+  montant_ttc:
+    pattern: '(?i)total\s*[:\.]?\s*(\d+[\.,]\d{3}[\.,]\d{2})'
+    description: "Capture le montant après la mention Total TTC"
+
+  email:
+    pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    description: "Capture les adresses emails standards"
