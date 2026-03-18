@@ -1,17 +1,33 @@
 # Configuration des expressions régulières
 extractions:
+  document_id:
+    pattern: "(?:R.f.rence|N° devis) : ([0-z-]+)\n"
+    description: "Capture l'id du document"
+
+  document_type:
+    pattern: "(?i)(ATTESTATION|DEVIS CLIENT|DEVIS FOURNISSEUR)"
+    description: "Capture le type de document"
+  
   siret:
-    pattern: '\b(\d{3}\s?\d{3}\s?\d{3}\s?\d{5})\b'
+    pattern: "SIRET : ([0-9]+)\n"
     description: "Capture les 14 chiffres du SIRET avec ou sans espaces"
   
-  date:
-    pattern: '(\d{4}[/\.-]\d{2}[/\.-]\d{2})'
-    description: "Capture les dates au format JJ/MM/AAAA ou JJ-MM-AAAA"
+  date_emission:
+    pattern: "Date d'.mission : (.?./.?./.?.?..)"
+    description: "Capture la date d'emission"
   
-  montant_ttc:
-    pattern: '(?i)total\s*[:\.]?\s*(\d+[\.,]\d{3}[\.,]\d{2})'
-    description: "Capture le montant après la mention Total TTC"
+  date_expiration:
+    pattern: "Date (?:d'expiration|de validité) : (.?./.?./.?.?..)"
+    description: "Capture la date d'emission"
+  
+  montant_tva:
+    pattern: "TVA : ([0-z]+)\n"
+    description: "Capture le montant après la mention TVA"
 
-  email:
-    pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-    description: "Capture les adresses emails standards"
+  nom:
+    pattern: "(?:Nom : |Entreprise\n\n)(.*)\n"
+    description: "Capture le nom"
+  
+  adresse:
+    pattern: "Adresse : (.*)\n"
+    description: "Capture l'adresse"
