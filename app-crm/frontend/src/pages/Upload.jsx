@@ -8,6 +8,7 @@ const Upload = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadStatus, setUploadStatus] = useState('idle');
     const [statusMessage, setStatusMessage] = useState('');
+    const [extractedData, setExtractedData] = useState(null);
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -22,12 +23,14 @@ const Upload = () => {
 
         setIsUploading(true);
         setUploadStatus('uploading');
-        setStatusMessage('Envoi des documents en cours...');
+        setStatusMessage('Envoi du document en cours...');
+        setExtractedData(null);
 
         try {
             const documents = await uploadDocuments(files);
             setUploadStatus('success');
-            setStatusMessage(`${documents.length} document(s) envoyé(s) avec succès`);
+            setStatusMessage(`Document envoye: ${document.originalName}`);
+            setExtractedData(document.extractedData || null);
         } catch (error) {
             setUploadStatus('error');
             setStatusMessage(error instanceof Error ? error.message : 'Erreur pendant upload');
@@ -45,7 +48,7 @@ const Upload = () => {
                     onUpload={handleUpload}
                     isUploading={isUploading}
                 />
-                <AnalysisPanel status={uploadStatus} message={statusMessage} />
+                <AnalysisPanel status={uploadStatus} message={statusMessage} extractedData={extractedData} />
             </div>
         </div>
     );

@@ -7,19 +7,37 @@ services:
     working_dir: /app
     volumes:
       - ./app-crm/backend:/app
+      - ./app-crm/backend:/app
       - /app/node_modules
+      - ./data-lake:/data-lake
       - ./data-lake:/data-lake
     ports:
       - "4000:4000"
     environment:
       MONGO_URI: 
       JWT_SECRET: change_me_with_a_long_random_secret
+      MONGO_URI: 
+      JWT_SECRET: change_me_with_a_long_random_secret
       PORT: 4000
       NODE_ENV: development
       OCR_API_URL: http://ocr-api:8000
       DATA_LAKE_RAW: /data-lake/raw
+      OCR_API_URL: http://ocr-api:8000
+      DATA_LAKE_RAW: /data-lake/raw
     command: sh -c "npm install && npm run dev"
 
+  ocr-api:
+    build:
+      context: ./ml-ocr-engine
+    container_name: ocr-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data-lake:/data-lake
+    environment:
+      DATA_LAKE_CLEAN: /data-lake/clean
+      DATA_LAKE_CURATED: /data-lake/curated
   ocr-api:
     build:
       context: ./ml-ocr-engine

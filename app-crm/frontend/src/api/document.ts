@@ -40,6 +40,21 @@ export const uploadDocuments = async (files: File[]): Promise<UploadedDocument[]
     return data.documents || [];
 };
 
+export const getDocumentsByUserId = async (userId: string): Promise<UploadedDocument[]> => {
+    const token = getToken();
+    if (!token) throw new Error('Utilisateur non authentifie');
+
+    const response = await fetch(`${API_BASE}/documents/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.message || 'Echec du chargement');
+    }
+    return response.json();
+};
+
 export const getDocuments = async (): Promise<UploadedDocument[]> => {
     const token = getToken();
     if (!token) {
