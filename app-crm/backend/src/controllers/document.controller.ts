@@ -48,41 +48,47 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
             return;
         }
 
-        const file = req.file;
-        if (!file) {
+        const files = Array.isArray(req.files) ? req.files : req.file ? [req.file] : [];
+        if (!files || files.length === 0) {
             res.status(400).json({ message: "Aucun fichier n'a été téléchargé" });
             return;
         }
 
         await ensureBucketExists();
-
-        const objectName = `raw/${file.filename}`;
-        await minioClient.fPutObject(DATA_LAKE_BUCKET, objectName, file.path);
-
-        const document = await DocumentModel.create({
-            ownerId: req.user.userId,
-            filename: file.filename,
-            originalName: file.originalname,
-            path: file.path,
-            objectPath: objectName,
-            status: "processing",
-        });
-
         fs.mkdirSync(DATA_LAKE_RAW, { recursive: true });
-        fs.copyFileSync(file.path, `${DATA_LAKE_RAW}/${file.originalname}`);
 
-        try {
-            const extractedData = await callOcrApi(file.path, file.originalname);
-            const siretInfo = await validateSiret(extractedData?.siret);
-            document.extractedData = { ...extractedData, siret_info: siretInfo };
-            document.status = "done";
-        } catch (err) {
-            console.error("OCR échoué :", err);
-            document.status = "ocr_failed";
+        const results = [];
+
+        for (const file of files) {
+            const objectName = `raw/${file.filename}`;
+            await minioClient.fPutObject(DATA_LAKE_BUCKET, objectName, file.path);
+
+            const document = await DocumentModel.create({
+                ownerId: req.user.userId,
+                filename: file.filename,
+                originalName: file.originalname,
+                path: file.path,
+                objectPath: objectName,
+                status: "processing",
+            });
+
+            fs.copyFileSync(file.path, `${DATA_LAKE_RAW}/${file.originalname}`);
+
+            try {
+                const extractedData = await callOcrApi(file.path, file.originalname);
+                const siretInfo = await validateSiret(extractedData?.siret);
+                (document as any).extractedData = { ...extractedData, siret_info: siretInfo };
+                document.status = "done";
+            } catch (err) {
+                console.error("OCR échoué :", err);
+                document.status = "ocr_failed";
+            }
+
+            await document.save();
+            results.push(document);
         }
 
-        await document.save();
-        res.json({ message: "Fichier téléchargé avec succès", document });
+        res.json({ message: `${results.length} fichiers téléchargés avec succès`, documents: results });
     } catch (err: any) {
         console.error("Erreur lors de l'upload :", err);
         res.status(500).json({ error: err.message });

@@ -1,33 +1,33 @@
 import { useState } from 'react';
 import UploadPanel from '../components/UploadPanel';
 import AnalysisPanel from '../components/AnalysisPanel';
-import { uploadDocument } from '../api/document';
+import { uploadDocuments } from '../api/document';
 
 const Upload = () => {
-    const [file, setFile] = useState(null);
+    const [files, setFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadStatus, setUploadStatus] = useState('idle');
     const [statusMessage, setStatusMessage] = useState('');
 
     const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
+        if (e.target.files && e.target.files.length > 0) {
+            setFiles(Array.from(e.target.files));
             setUploadStatus('idle');
             setStatusMessage('');
         }
     };
 
     const handleUpload = async () => {
-        if (!file || isUploading) return;
+        if (!files.length || isUploading) return;
 
         setIsUploading(true);
         setUploadStatus('uploading');
-        setStatusMessage('Envoi du document en cours...');
+        setStatusMessage('Envoi des documents en cours...');
 
         try {
-            const document = await uploadDocument(file);
+            const documents = await uploadDocuments(files);
             setUploadStatus('success');
-            setStatusMessage(`Document envoye: ${document.originalName}`);
+            setStatusMessage(`${documents.length} document(s) envoyé(s) avec succès`);
         } catch (error) {
             setUploadStatus('error');
             setStatusMessage(error instanceof Error ? error.message : 'Erreur pendant upload');
@@ -40,7 +40,7 @@ const Upload = () => {
         <div className="upload-page">
             <div className="upload-container">
                 <UploadPanel
-                    file={file}
+                    files={files}
                     onFileChange={handleFileChange}
                     onUpload={handleUpload}
                     isUploading={isUploading}

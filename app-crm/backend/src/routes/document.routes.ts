@@ -27,7 +27,7 @@ const upload = multer({ storage: storage });
 
 // Routes pour les documents
 // On peut ajouter authenticate ici si on veut restreindre l'accès
-router.post("/upload", authenticate, upload.single("file"), uploadDocument);
+router.post("/upload", authenticate, upload.array("files", 20), uploadDocument);
 router.get("/", authenticate, getDocuments);
 
 export default router;

@@ -10,14 +10,18 @@ export interface UploadedDocument {
     createdAt?: string;
 }
 
-export const uploadDocument = async (file: File): Promise<UploadedDocument> => {
+export const uploadDocuments = async (files: File[]): Promise<UploadedDocument[]> => {
     const token = getToken();
     if (!token) {
         throw new Error('Utilisateur non authentifie');
     }
 
+    if (!files || files.length === 0) {
+        throw new Error('Aucun fichier sélectionné');
+    }
+
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach((file) => formData.append('files', file));
 
     const response = await fetch(`${API_BASE}/documents/upload`, {
         method: 'POST',
@@ -33,7 +37,7 @@ export const uploadDocument = async (file: File): Promise<UploadedDocument> => {
     }
 
     const data = await response.json();
-    return data.document;
+    return data.documents || [];
 };
 
 export const getDocuments = async (): Promise<UploadedDocument[]> => {

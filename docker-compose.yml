@@ -1,94 +1,37 @@
 services:
 
-  mongodb:
-    image: mongo:7
-    container_name: mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin123
-      MONGO_INITDB_DATABASE: docuflow
-    volumes:
-      - mongo_data:/data/db
-    ports:
-      - "27017:27017"
-    healthcheck:
-      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1})" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  mongo-express:
-    image: mongo-express:1.0.2
-    container_name: mongo-express
-    restart: unless-stopped
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
-      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
-      ME_CONFIG_BASICAUTH: false
-    ports:
-      - "8081:8081"
-
-  minio:
-    image: minio/minio
-    container_name: minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
-    command: server /data --console-address ":9001"
-
-  minio-init:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      sleep 5;
-      mc alias set myminio http://minio:9000 admin password123;
-      mc mb myminio/document-datalake;
-      mc policy set public myminio/document-datalake;
-      exit 0;
-      "
-
   backend:
     image: node:20-alpine
     container_name: backend
     restart: unless-stopped
     working_dir: /app
     volumes:
-      - ./backend:/app
+      - ./app-crm/backend:/app
       - /app/node_modules
+      - ./data-lake:/data-lake
     ports:
       - "4000:4000"
     environment:
-      MONGO_URI: mongodb://admin:admin123@mongodb:27017/docuflow?authSource=admin
+      MONGO_URI: 
+      JWT_SECRET: change_me_with_a_long_random_secret
       PORT: 4000
       NODE_ENV: development
-    depends_on:
-      mongodb:
-        condition: service_healthy
+      OCR_API_URL: http://ocr-api:8000
+      DATA_LAKE_RAW: /data-lake/raw
     command: sh -c "npm install && npm run dev"
 
-  # app-crm-backend:
-  #   build:
-  #     context: ./app-crm
-  #   container_name: idp_crm_backend
-  #   ports:
-  #     - "5000:5000"
-  #   environment:
-  #     - MONGO_URI=mongodb://mongodb:27017/crm
-  #     - PORT=5000
-  #   depends_on:
-  #     - mongodb
-
+  ocr-api:
+    build:
+      context: ./ml-ocr-engine
+    container_name: ocr-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data-lake:/data-lake
+    environment:
+      DATA_LAKE_CLEAN: /data-lake/clean
+      DATA_LAKE_CURATED: /data-lake/curated
 
   app-crm-frontend:
     image: node:18-alpine
@@ -102,14 +45,9 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-<<<<<<< Updated upstream
-      - REACT_APP_API_URL=http://localhost:4000
-
-volumes:
-  mongo_data:
-=======
       - REACT_APP_API_URL=http://localhost:4000/api
       - HOST=0.0.0.0
+
   minio:
     image: minio/minio
     container_name: minio
@@ -133,4 +71,3 @@ volumes:
       mc policy set public myminio/document-datalake;
       exit 0;
       "
->>>>>>> Stashed changes

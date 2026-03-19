@@ -5,15 +5,19 @@ export interface IDocument extends MongooseDocument {
   filename: string;
   originalName: string;
   path: string;
+  objectPath?: string;
+  extractedData?: any;
   status: string;
   createdAt: Date;
 }
 
 const documentSchema: Schema = new Schema({
-  ownerId: {type: Schema.Types.ObjectId,ref: "User",required: true},
+  ownerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   filename: { type: String, required: true },
   originalName: { type: String, required: true },
   path: { type: String, required: true },
+  objectPath: { type: String },
+  extractedData: { type: Schema.Types.Mixed },
   status: {
     type: String,
     default: "uploaded"
