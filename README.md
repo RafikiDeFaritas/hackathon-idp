@@ -196,61 +196,7 @@ flowchart TB
 
 ## Diagramme des Cas d'Utilisation
 
-```mermaid
-flowchart LR
-    Adm["Administrateur"]
-    U["Utilisateur"]
-
-    subgraph SYS["Systeme IDP"]
-        direction LR
-
-        subgraph AUTH[" "]
-            CU1(["S'inscrire"])
-            CU2(["Se connecter"])
-        end
-
-        subgraph MAIN[" "]
-            CU3(["Uploader un document"])
-            CU4(["Consulter mes documents"])
-            CU5(["Gerer les utilisateurs"])
-            CU6(["Tableau de bord Admin"])
-        end
-
-        CU3 -. "«include»" .-> CU2
-        CU4 -. "«include»" .-> CU2
-        CU5 -. "«include»" .-> CU2
-        CU6 -. "«include»" .-> CU2
-    end
-
-    OCR["OCR API"]
-    SIR["API SIRET\n(gouv.fr)"]
-    MDB["MongoDB"]
-
-    Adm -. "herite" .-> U
-    U --> CU1
-    U --> CU2
-    U --> CU3
-    U --> CU4
-    Adm --> CU5
-    Adm --> CU6
-
-    CU3 --> OCR
-    CU3 --> SIR
-    CU1 --> MDB
-    CU2 --> MDB
-    CU3 --> MDB
-    CU4 --> MDB
-    CU5 --> MDB
-    CU6 --> MDB
-
-    style U    fill:#d5f5e3,stroke:#27ae60,color:#1e8449
-    style Adm  fill:#d6eaf8,stroke:#2980b9,color:#1a5276
-    style OCR  fill:#fdebd0,stroke:#e67e22,color:#784212
-    style SIR  fill:#fdebd0,stroke:#e67e22,color:#784212
-    style MDB  fill:#f4ecf7,stroke:#8e44ad,color:#6c3483
-    style AUTH fill:transparent,stroke:transparent
-    style MAIN fill:transparent,stroke:transparent
-```
+![Diagramme des Cas d'Utilisation](assets/images/diagramme_cu.png)
 
 ---
 
