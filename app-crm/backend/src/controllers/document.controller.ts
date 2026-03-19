@@ -5,6 +5,23 @@ import { AuthRequest } from "../middleware/auth";
 
 const OCR_API_URL = process.env.OCR_API_URL || "http://localhost:8000";
 
+async function validateSiret(siret: string) {
+    if (!siret || siret.length !== 14) return null;
+    try {
+        const res = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${siret}&per_page=1`);
+        const data = await res.json() as any;
+        const company = data.results?.[0];
+        if (!company) return { valide: false };
+        return {
+            valide: true,
+            etatAdministratif: company.siege?.etat_administratif || "A",
+            nomEntreprise: company.nom_complet || company.denomination || "",
+        };
+    } catch {
+        return null;
+    }
+}
+
 async function callOcrApi(filePath: string, originalName: string) {
     const formData = new FormData();
     const fileBuffer = fs.readFileSync(filePath);
@@ -46,7 +63,8 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
 
         try {
             const extractedData = await callOcrApi(file.path, file.originalname);
-            document.extractedData = extractedData;
+            const siretInfo = await validateSiret(extractedData?.siret);
+            document.extractedData = { ...extractedData, siret_info: siretInfo };
             document.status = "done";
         } catch (err) {
             console.error("OCR échoué :", err);

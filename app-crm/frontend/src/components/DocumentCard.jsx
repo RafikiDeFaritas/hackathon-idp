@@ -43,7 +43,7 @@ const DocumentCard = ({ doc }) => {
                             <strong className="data-value">{doc.extractedData.date_expiration || 'N/A'}</strong>
                         </div>
                         <div className="data-item">
-                            <small className="data-label">Montant TVA</small>
+                            <small className="data-label">Numéro TVA</small>
                             <strong className="data-value">{doc.extractedData.montant_tva || 'N/A'}</strong>
                         </div>
                         <div className="data-item full-width">
