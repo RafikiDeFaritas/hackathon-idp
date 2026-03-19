@@ -1,3 +1,10 @@
+function isExpired(dateStr) {
+    if (!dateStr) return false;
+    const [day, month, year] = dateStr.split('/');
+    const expiration = new Date(`${year}-${month}-${day}`);
+    return expiration < new Date();
+}
+
 const DocumentCard = ({ doc }) => {
     return (
         <div className="content-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: 0, boxShadow: 'none' }}>
@@ -40,7 +47,12 @@ const DocumentCard = ({ doc }) => {
                         </div>
                         <div className="data-item">
                             <small className="data-label">Date d'expiration</small>
-                            <strong className="data-value">{doc.extractedData.date_expiration || 'N/A'}</strong>
+                            <strong className="data-value">
+                                {doc.extractedData.date_expiration || 'N/A'}
+                                {isExpired(doc.extractedData.date_expiration) && (
+                                    <span style={{ color: '#ef4444', marginLeft: '8px' }}>Expiré</span>
+                                )}
+                            </strong>
                         </div>
                         <div className="data-item">
                             <small className="data-label">Numéro TVA</small>

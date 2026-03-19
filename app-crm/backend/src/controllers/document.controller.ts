@@ -4,6 +4,7 @@ import DocumentModel from "../model/document.model";
 import { AuthRequest } from "../middleware/auth";
 
 const OCR_API_URL = process.env.OCR_API_URL || "http://localhost:8000";
+const DATA_LAKE_RAW = process.env.DATA_LAKE_RAW || "/data-lake/raw";
 
 async function validateSiret(siret: string) {
     if (!siret || siret.length !== 14) return null;
@@ -60,6 +61,9 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
             path: file.path,
             status: "processing",
         });
+
+        fs.mkdirSync(DATA_LAKE_RAW, { recursive: true });
+        fs.copyFileSync(file.path, `${DATA_LAKE_RAW}/${file.originalname}`);
 
         try {
             const extractedData = await callOcrApi(file.path, file.originalname);

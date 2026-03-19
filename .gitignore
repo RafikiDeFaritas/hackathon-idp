@@ -38,5 +38,4 @@ mongo_data/
 # OS
 .DS_Store
 
-#Docker
-docker-compose.yml
+
