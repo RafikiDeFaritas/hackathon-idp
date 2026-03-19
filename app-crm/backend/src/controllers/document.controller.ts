@@ -1,5 +1,4 @@
 import fs from "fs";
-import fs from "fs";
 import { Request, Response } from "express";
 import DocumentModel from "../model/document.model";
 import { AuthRequest } from "../middleware/auth";
@@ -104,19 +103,6 @@ export const getDocuments = async (req: AuthRequest, res: Response): Promise<voi
         }
         const query = { ownerId: req.user.userId };
         const documents = await DocumentModel.find(query).sort({ createdAt: -1 });
-        res.json(documents);
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-};
-
-export const getDocumentsByUserId = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        if (!req.user || req.user.role !== "ADMIN") {
-            res.status(403).json({ message: "Accès refusé" });
-            return;
-        }
-        const documents = await DocumentModel.find({ ownerId: req.params.userId }).sort({ createdAt: -1 });
         res.json(documents);
     } catch (err: any) {
         res.status(500).json({ error: err.message });
