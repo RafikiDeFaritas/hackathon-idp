@@ -7,6 +7,16 @@ Ce projet propose une solution complete d'Intelligence Document Processing (IDP)
 L'application a ete deployee et est accessible a l'adresse suivante :
 **[https://hackathon26.lulu960.xyz](https://hackathon26.lulu960.xyz)**
 
+## Stack Technique
+
+| Domaine | Technologies |
+|---|---|
+| **Frontend** | React, API Fetch, CSS Vanilla |
+| **Backend API** | Node.js, Express, TypeScript, Mongoose, JWT, Multer |
+| **OCR Engine** | Python, FastAPI, Tesseract OCR |
+| **Base de donnees** | MongoDB |
+| **DevOps / Infra** | Docker, Docker Compose |
+
 ## Architecture des dossiers
 
 ```
