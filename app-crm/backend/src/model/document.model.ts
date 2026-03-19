@@ -8,7 +8,6 @@ export interface IDocument extends MongooseDocument {
   objectPath?: string;
   extractedData?: any;
   status: string;
-  extractedData: Record<string, any> | null;
   createdAt: Date;
 }
 
