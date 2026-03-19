@@ -2,6 +2,7 @@ import fs from "fs";
 import { Request, Response } from "express";
 import DocumentModel from "../model/document.model";
 import { AuthRequest } from "../middleware/auth";
+import { minioClient, DATA_LAKE_BUCKET, ensureBucketExists } from "../config/minio";
 
 const OCR_API_URL = process.env.OCR_API_URL || "http://localhost:8000";
 const DATA_LAKE_RAW = process.env.DATA_LAKE_RAW || "/data-lake/raw";
@@ -36,8 +37,8 @@ async function callOcrApi(filePath: string, originalName: string) {
 
     if (!response.ok) throw new Error(`OCR API error: ${response.status}`);
 
-    const data = await response.json() as { extracted_data: Record<string, any> };
-    return data.extracted_data;
+    const data = await response.json();
+    return data.extracted_data || data;
 }
 
 export const uploadDocument = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -47,37 +48,47 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
             return;
         }
 
-        const file = req.file;
-
-        if (!file) {
+        const files = Array.isArray(req.files) ? req.files : req.file ? [req.file] : [];
+        if (!files || files.length === 0) {
             res.status(400).json({ message: "Aucun fichier n'a été téléchargé" });
             return;
         }
 
-        const document = await DocumentModel.create({
-            ownerId: req.user.userId,
-            filename: file.filename,
-            originalName: file.originalname,
-            path: file.path,
-            status: "processing",
-        });
-
+        await ensureBucketExists();
         fs.mkdirSync(DATA_LAKE_RAW, { recursive: true });
-        fs.copyFileSync(file.path, `${DATA_LAKE_RAW}/${file.originalname}`);
 
-        try {
-            const extractedData = await callOcrApi(file.path, file.originalname);
-            const siretInfo = await validateSiret(extractedData?.siret);
-            document.extractedData = { ...extractedData, siret_info: siretInfo };
-            document.status = "done";
-        } catch (err) {
-            console.error("OCR échoué :", err);
-            document.status = "ocr_failed";
+        const results = [];
+
+        for (const file of files) {
+            const objectName = `raw/${file.filename}`;
+            await minioClient.fPutObject(DATA_LAKE_BUCKET, objectName, file.path);
+
+            const document = await DocumentModel.create({
+                ownerId: req.user.userId,
+                filename: file.filename,
+                originalName: file.originalname,
+                path: file.path,
+                objectPath: objectName,
+                status: "processing",
+            });
+
+            fs.copyFileSync(file.path, `${DATA_LAKE_RAW}/${file.originalname}`);
+
+            try {
+                const extractedData = await callOcrApi(file.path, file.originalname);
+                const siretInfo = await validateSiret(extractedData?.siret);
+                (document as any).extractedData = { ...extractedData, siret_info: siretInfo };
+                document.status = "done";
+            } catch (err) {
+                console.error("OCR échoué :", err);
+                document.status = "ocr_failed";
+            }
+
+            await document.save();
+            results.push(document);
         }
 
-        await document.save();
-
-        res.json({ message: "Fichier téléchargé avec succès", document });
+        res.json({ message: `${results.length} fichiers téléchargés avec succès`, documents: results });
     } catch (err: any) {
         console.error("Erreur lors de l'upload :", err);
         res.status(500).json({ error: err.message });
@@ -90,7 +101,6 @@ export const getDocuments = async (req: AuthRequest, res: Response): Promise<voi
             res.status(401).json({ message: "Utilisateur non authentifie" });
             return;
         }
-
         const query = { ownerId: req.user.userId };
         const documents = await DocumentModel.find(query).sort({ createdAt: -1 });
         res.json(documents);
